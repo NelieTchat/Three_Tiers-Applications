@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  AFGSTATICS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "afg.puma.cloudspacellc.com"
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+    DeletionPolicy: Retain
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: MyPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Join 
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref AFGSTATICS3Bucket
+                - /*
+      Bucket: !Ref AFGSTATICS3Bucket
+  AFGStorageS3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private   
+      BucketName: afg-storage-s3
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID: KMS-KEY-ARN
+      LifecycleConfiguration:
+        Rules:
+          - Id: GlacierRule
+            Prefix: glacier
+            Status: Enabled
+            ExpirationInDays: 1825
+            Transitions:
+              - TransitionInDays: 30
+                StorageClass: GLACIER
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls : true
+        BlockPublicPolicy : true
+        IgnorePublicAcls : true
+        RestrictPublicBuckets : true        
+
+Outputs:
+  WebsiteURL:
+    Value: !GetAtt 
+      - AFGSTATICS3Bucket
+      - WebsiteURL
+    Description: URL for website hosted on S3
+    Export:    
+      Name: !Sub '${AWS::StackName}-AFGSTATICS3Bucket'        
+  S3BucketSecureURL:
+    Value: !Join 
+      - ''
+      - - 'https://'
+        - !GetAtt 
+          - AFGSTATICS3Bucket
+          - DomainName
+    Description: Name of S3 bucket to hold website content
+    Export:
+      Name: !Sub '${AWS::StackName}-AFGSTATICS3BucketSecure'    

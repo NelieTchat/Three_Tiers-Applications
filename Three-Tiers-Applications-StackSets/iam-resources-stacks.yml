@@ -1,0 +1,140 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  AWS CloudFormation Sample Template creates Users with Group
+
+Parameters:
+  Password:
+    NoEcho: 'true'
+    Type: String
+    Description: New account password
+    MinLength: '1'
+    MaxLength: '41'
+    ConstraintDescription: the password must be between 1 and 41 characters
+Resources:
+  Hera: 
+    Type: AWS::IAM::User
+    Properties:
+      LoginProfile:
+        Password: !Ref 'Password'
+  Nelie:
+    Type: AWS::IAM::User
+    Properties:
+      LoginProfile:
+        Password: !Ref 'Password'
+  Idriss:
+    Type: AWS::IAM::User
+    Properties:
+      LoginProfile:
+        Password: !Ref 'Password'
+  Bernadette:
+    Type: AWS::IAM::User
+    Properties:
+      LoginProfile:
+        Password: !Ref 'Password'
+  CloudspacePumaUsersAdminGroup:
+    Type: AWS::IAM::Group
+  NASFinancialSecurityTeamGroup:
+    Type: AWS::IAM::Group
+  NASFinancialOperationsTeamGroup:
+    Type: AWS::IAM::Group
+  CloudspacePumaUsersAdmin:
+    Type: AWS::IAM::UserToGroupAddition
+    Properties:
+      GroupName: !Ref 'CloudspacePumaUsersAdminGroup'
+      Users: 
+          - !Ref Bernadette
+          - !Ref Hera
+          - !Ref Nelie
+  NASOperationsUsers:
+    Type: AWS::IAM::UserToGroupAddition
+    Properties:
+      GroupName: !Ref 'NASFinancialOperationsTeamGroup'
+      Users: 
+          - !Ref Bernadette
+          - !Ref Hera
+          - !Ref Nelie
+          - !Ref Idriss
+  NASSecurityUsers:
+    Type: AWS::IAM::UserToGroupAddition
+    Properties:
+      GroupName: !Ref 'NASFinancialSecurityTeamGroup'
+      Users: 
+          - !Ref Bernadette
+          - !Ref Hera
+          - !Ref Nelie
+          - !Ref Idriss
+  NASOperationsUsersPolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: NASFinancialTeamAdmininUSEAST
+      PolicyDocument:
+        Version: "2012-10-17"      
+        Statement:
+        - Effect: Allow
+          Action: '*'
+          Resource: '*'
+          Condition:
+            StringEquals:
+              aws:RequestedRegion: us-east-1
+      Groups: [!Ref 'NASFinancialOperationsTeamGroup']
+  NASSecurityUsersPolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: NASSecurityTeamFullAdminwithBilling
+      # PolicyDocument:
+        # Version: "2012-10-17"        
+        # Statement:
+        # - Effect: Allow
+        #   Action: '*'
+        #   Resource: '*'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: VisualEditor0
+          Effect: Allow
+          Action: aws-portal:*
+          Resource: "*"
+        # Version: "2012-10-17"        
+        # Statement:
+        # - Effect: Allow
+        #   Action: 
+        #     - 'aws-portal:*Billing'
+        #     - 'aws-portal:*Usage'
+        #     - 'aws-portal:*PaymentMethods'
+        #     - 'budgets:ViewBudget'
+        #     - 'budgets:ModifyBudget'
+        #     - 'ce:UpdatePreferences'
+        #     - 'ce:CreateReport'
+        #     - 'ce:UpdateReport'
+        #     - 'ce:DeleteReport'
+        #     - 'ce:CreateNotificationSubscription'
+        #     - 'ce:UpdateNotificationSubscription'
+        #     - 'ce:DeleteNotificationSubscription'
+        #     - 'cur:DescribeReportDefinitions'
+        #     - 'cur:PutReportDefinition'
+        #     - 'cur:ModifyReportDefinition'
+        #     - 'cur:DeleteReportDefinition'
+        #     - 'purchase-orders:*PurchaseOrders'
+        #   Resource: '*'
+      Groups: [!Ref 'NASFinancialSecurityTeamGroup']  
+  CloudspacePumaUsersAdminPolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CloudspacePumaUsersAdminonly
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Action: '*'
+          Resource: '*'
+      Groups: [!Ref 'CloudspacePumaUsersAdminGroup']
+  Keys:
+    Type: AWS::IAM::AccessKey
+    Properties:
+        UserName: !Ref 'Bernadette'
+Outputs:
+    AccessKey:
+      Value: !Ref 'Keys'
+      Description: AWSAccessKeyId of new user
+    SecretKey:
+      Value: !GetAtt [Keys, SecretAccessKey]
+      Description: AWSSecretAccessKey of new user

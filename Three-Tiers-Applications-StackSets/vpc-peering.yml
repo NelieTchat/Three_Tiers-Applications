@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create a VPC and an assumable role for cross account VPC peering.
+Parameters:
+  PrivateVPCIDCIDRRange:
+    Description: The IP address range for your new Private VPC.
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 172.31.0.0/16
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+
+Resources:
+  # PeeringRoute2:
+  #   Type: 'AWS::EC2::Route'
+  #   Properties:
+  #     DestinationCidrBlock: !Ref PrivateVPCIDCIDRRange
+  #     RouteTableId: rtb-04f22dd2281327943
+  #     VpcPeeringConnectionId: !Ref vpcPeeringConnection
+  # PeeringRoute1:
+  #   Type: 'AWS::EC2::Route'
+  #   Properties:
+  #     DestinationCidrBlock: !Ref PrivateVPCIDCIDRRange
+  #     RouteTableId: rtb-04f22dd2281327943
+  #     VpcPeeringConnectionId: !Ref vpcPeeringConnection
+    #Peering connection            
+  vpcPeeringConnection:
+    Type: 'AWS::EC2::VPCPeeringConnection'
+    Properties:
+      VpcId: vpc-057b9695bf3df001b      # requester vpc id
+      PeerVpcId: vpc-0c967871  # accepter vpc id
+      PeerOwnerId: "512121751697"    # accepter aws account id
+      PeerRoleArn: arn:aws:iam::512121751697:role/puma-oct-peering-peerRole-1PAN43J4VU4U0
+             
+Outputs:
+  VPCPeeringConnectionId:
+    Value: !Ref vpcPeeringConnection
+
+# Resources:
+#   vpcPeeringConnection:
+#     Type: 'AWS::EC2::VPCPeeringConnection'
+#     Properties:
+#       VpcId: vpc-0e9019adc51c4733d
+#       PeerVpcId: vpc-0da51633a7b55a79b
+#       PeerOwnerId: !Ref PeerVPCAccountId
+#       PeerRoleArn: !Ref PeerRoleArn
+# Outputs:
+#   # VPCId:
+#   #   Value: !Ref vpc
+#   VPCPeeringConnectionId:
+#     Value: !Ref vpcPeeringConnection
